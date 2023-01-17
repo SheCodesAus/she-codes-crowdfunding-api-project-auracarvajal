@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from .models import Project, Pledge
 from .serializers import ProjectSerializer, ProjectDetailsSerializer, PledgeSerializer
 from django.http import Http404
-from rest_framework import status
+from rest_framework import status, generics
 
 # Create your views here.
 
@@ -17,7 +17,7 @@ class ProjectList(APIView):
     def post(self, request):
         serializer = ProjectSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(owner=request.user)
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED
@@ -41,22 +41,9 @@ class ProjectDetail(APIView):
         serializer = ProjectDetailsSerializer(project)
         return Response(serializer.data)
 
-class Pledgelist(APIView):
-    def get(self, request):
-        Pledges = Pledge.objects.all()
-        serializer = ProjectSerializer(Pledges, many=True)
-        return Response(serializer.data)
+class Pledgelist(generics.ListCreateAPIView):
+    queryset = Pledge.objects.all()
+    serializer_class = PledgeSerializer
 
-    def post(self, request):
-        serializer = PledgeSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-
-        return Response(
-            serializer.errors,
-              status=status.HTTP_400_BAD_REQUEST
-        )
+    def perform_create(self, serializer):
+        serializer.save(supporter=self.request.user)
