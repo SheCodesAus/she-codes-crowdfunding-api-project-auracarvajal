@@ -64,7 +64,7 @@ class ProjectDetail(APIView):
             return Response(serializer.data)
 
 
-class Pledgelist(generics.ListCreateAPIView): 
+class PledgeList(generics.ListCreateAPIView): 
     queryset = Pledge.objects.all()
     serializer_class = PledgeSerializer
 
@@ -72,39 +72,12 @@ class Pledgelist(generics.ListCreateAPIView):
         serializer.save(supporter=self.request.user)
 
 
-class PledgeDetail(APIView):
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
-        IsOwnerOrReadOnly
-    ]
+class PledgeDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Pledge.objects.all()
+    serializer_class = PledgeDetailsSerializer
 
 
-    def get_object(self, pk):
-        try:
-            pledge = Pledge.objects.get(pk=pk)
-            self.check_object_permissions(self.request, pledge)
-            return pledge
-        except Pledge.DoesNotExist:
-            raise Http404
-
-
-    def get(self, request, pk):
-        pledge = self.get_object(pk)
-        serializer = PledgeDetailsSerializer(pledge)
-        return Response(serializer.data)
-
-    def put(self,request,pk):
-        pledge = self.get_object(pk)
-        data = request.data
-        serializer = PledgeDetailsSerializer(
-            instance=pledge,
-            data=data,
-            partial=True
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
- 
+    
 
 
    
