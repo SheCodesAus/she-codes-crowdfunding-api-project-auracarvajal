@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Project, Pledge
-from .serializers import ProjectSerializer, ProjectDetailsSerializer, PledgeSerializer
+from .serializers import ProjectSerializer, ProjectDetailsSerializer, PledgeSerializer, PledgeDetailsSerializer
 from django.http import Http404
 from rest_framework import status, generics, permissions
 from .permissions import IsOwnerOrReadOnly
@@ -64,9 +64,7 @@ class ProjectDetail(APIView):
             return Response(serializer.data)
 
 
-class Pledgelist(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    IsOwnerOrReadOnly
+class Pledgelist(generics.ListCreateAPIView): 
     queryset = Pledge.objects.all()
     serializer_class = PledgeSerializer
 
@@ -74,22 +72,39 @@ class Pledgelist(generics.ListCreateAPIView):
         serializer.save(supporter=self.request.user)
 
 
+class PledgeDetail(APIView):
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsOwnerOrReadOnly
+    ]
+
+
     def get_object(self, pk):
         try:
             pledge = Pledge.objects.get(pk=pk)
             self.check_object_permissions(self.request, pledge)
             return pledge
-        except Project.DoesNotExist:
+        except Pledge.DoesNotExist:
             raise Http404
 
 
-    def put(self, request, pk):
+    def get(self, request, pk):
+        pledge = self.get_object(pk)
+        serializer = PledgeDetailsSerializer(pledge)
+        return Response(serializer.data)
+
+    def put(self,request,pk):
         pledge = self.get_object(pk)
         data = request.data
-        serializer = PledgeSerializer(
+        serializer = PledgeDetailsSerializer(
             instance=pledge,
             data=data,
             partial=True
         )
         if serializer.is_valid():
-                serializer.save()
+            serializer.save()
+            return Response(serializer.data)
+ 
+
+
+   

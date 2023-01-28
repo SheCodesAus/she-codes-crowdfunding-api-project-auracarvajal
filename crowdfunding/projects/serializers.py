@@ -27,14 +27,7 @@ class PledgeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Pledge.objects.create(**validated_data)
 
-    def update(self, instance, validated_data):
-        instance.amount = validated_data.get('amount', instance.amount)
-        instance.comment = validated_data.get('comment', instance.comment)
-        instance.anonymous = validated_data.get('anonymous', instance.anonymous)
-        instance.project = validated_data.get('project', instance.project)
-        instance.supporter = validated_data.get('supporter', instance.supoorter) 
-        instance.save()
-        return instance
+  
 
 class ProjectDetailsSerializer(ProjectSerializer):
     pledges = PledgeSerializer(many=True, read_only=True)
@@ -48,5 +41,18 @@ class ProjectDetailsSerializer(ProjectSerializer):
         instance.is_open = validated_data.get('is_open', instance.is_open)
         instance.date_created = validated_data.get('date_created', instance.date_created)
         instance.owner = validated_data.get('owner', instance.owner)
+        instance.save()
+        return instance
+
+
+class PledgeDetailsSerializer(PledgeSerializer):
+    pledges = PledgeSerializer(many=True, read_only=True)
+
+    def update(self, instance, validated_data):
+        instance.amount = validated_data.get('amount', instance.amount)
+        instance.comment = validated_data.get('comment', instance.comment)
+        instance.anonymous = validated_data.get('anonymous', instance.anonymous)
+        instance.project = validated_data.get('project', instance.project)
+        instance.supporter = validated_data.get('supporter', instance.supoorter) 
         instance.save()
         return instance
